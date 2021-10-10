@@ -2,25 +2,20 @@ const db = require('../../models');
 const router = require('express').Router();
 
 router.get('/workouts', async (req, res) => {
-    db.Workout.aggregate.addFields(
+    db.Workout.aggregate([
+        { 
+            $match: {},
+        },
         {
-            totalDuration: { $sum: "$duration"}
-        }        
-    ).exec(function (error, workouts) {
-        if (error) {
-            res.status(500).json(error)
-        } else {
-            res.status(200).json(workouts)
+            $addFields: {
+                totalDuration: {
+                    $sum: "$exercises.duration"
+                }
+            }
         }
+    ]).exec(function (error, result) {
+        error ? res.json(error) : res.json(result);
     })
-
-    // db.Workout.find({}, function (error, workouts) {
-    //     if (error) {
-    //         res.status(500).json(error)
-    //     } else {
-    //         res.status(200).json(workouts)
-    //     }
-    // })
 })
 
 router.put('/workouts/:id', async (req, res) => {
@@ -44,12 +39,20 @@ router.post('/workouts', async (req, res) => {
 })
 
 router.get('/workouts/range', async (req, res) => {
-    db.Workout.find({}, function (error, workouts) {
-        if (error) {
-            res.status(500).json(error)
-        } else {
-            res.status(200).json(workouts)
+    db.Workout.aggregate([
+        { 
+            $match: {},
+        },
+        {
+            $addFields: {
+                // _id: "$exercises",
+                totalDuration: {
+                    $sum: "$exercises.duration"
+                }
+            }
         }
+    ]).exec(function (error, result) {
+        error ? res.json(error) : res.json(result);
     })
 })
 
